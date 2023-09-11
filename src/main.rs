@@ -1,5 +1,5 @@
 // Uncomment this block to pass the first stage
-use std::io::Write;
+use std::io::{Read, Write};
 use std::net::TcpListener;
 
 fn main() {
@@ -11,9 +11,20 @@ fn main() {
     let listener = TcpListener::bind("127.0.0.1:6379").unwrap();
     for stream in listener.incoming() {
         match stream {
-            Ok(mut _stream) => {
-                println!("accepted new connection");
-                let _ = _stream.write("+PONG\r\n".as_bytes());
+            Ok(mut stream) => {
+                println!("accepted new connection.");
+                let mut buff = [0; 512];
+
+                loop {
+                    // wait for client to send us a message
+                    let bytes_read = stream.read(&mut buff).unwrap();
+                    if bytes_read == 0 {
+                        println!("client closed connection!");
+                        break;
+                    }
+
+                    stream.write("+PONG\r\n".as_bytes()).unwrap();
+                }
             }
             Err(e) => {
                 println!("error: {}", e);
