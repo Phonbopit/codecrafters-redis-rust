@@ -5,7 +5,7 @@ use crate::resp::Value::{Error, SimpleString};
 
 mod resp;
 
-async fn handle_connection(mut stream: TcpStream) -> Result<()> {
+async fn handle_connection(stream: TcpStream) -> Result<()> {
     let mut connection = resp::RespConnection::new(stream);
 
     loop {
