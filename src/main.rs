@@ -1,20 +1,30 @@
 use anyhow::Result;
-use bytes::BytesMut;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
 
+use crate::resp::Value::{Error, SimpleString};
+
+mod resp;
+
 async fn handle_connection(mut stream: TcpStream) -> Result<()> {
-    let mut buff = BytesMut::with_capacity(512);
+    let mut connection = resp::RespConnection::new(stream);
 
     loop {
-        // wait for client to send us a message
-        let bytes_read = stream.read_buf(&mut buff).await?;
-        if bytes_read == 0 {
+        let value = connection.read_value().await?;
+
+        if let Some(value) = value {
+            let (command, args) = value.to_command()?;
+            let response = match command.to_ascii_lowercase().as_ref() {
+                "ping" => SimpleString("PONG".to_string()),
+                "echo" => args.first().unwrap().clone(),
+                _ => Error(format!("command not implemented: {}", command))
+            };
+
+            connection.write_value(response).await?;
+            println!("received value: {:?}", value);
+        } else {
             println!("client closed connection!");
             break;
         }
-
-        stream.write("+PONG\r\n".as_bytes()).await?;
     }
 
     Ok(())
