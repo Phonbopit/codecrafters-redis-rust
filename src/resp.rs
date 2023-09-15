@@ -7,6 +7,7 @@ const NEWLINE: u8 = '\n' as u8;
 
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub enum Value {
+    Null,
     SimpleString(String),
     Error(String),
     BulkString(String),
