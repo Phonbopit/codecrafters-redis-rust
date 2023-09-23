@@ -22,7 +22,7 @@ async fn handle_connection(stream: TcpStream, client_store: Arc<Mutex<Store>>) -
                 "echo" => args.first().unwrap().clone(),
                 "get" => {
                     if let Some(BulkString(key)) = args.get(0) {
-                        if let Some(value) = client_store.lock().unwrap().get(key) {
+                        if let Some(value) = client_store.lock().unwrap().get(key.to_string()) {
                             SimpleString(value.to_string())
                         } else {
                             Null
@@ -35,10 +35,10 @@ async fn handle_connection(stream: TcpStream, client_store: Arc<Mutex<Store>>) -
                     if let (Some(BulkString(key)), Some(BulkString(value))) = (args.get(0), args.get(1)) {
                         if let (Some(BulkString(key)), Some(BulkString(amount))) = (args.get(2), args.get(3)) {
                             client_store.lock().unwrap().set_with_expiry(key.to_string(), value.to_string(), amount.parse::<u64>()?);
-                            SimpleString("OK".to_string())
                         } else {
                             client_store.lock().unwrap().set(key.to_string(), value.to_string());
                         }
+                        SimpleString("OK".to_string())
                     } else {
                         Error("invalid arguments".to_string())
                     }

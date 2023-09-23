@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::time::Duration;
 use std::time::Instant;
 
 struct Entry {
@@ -40,7 +41,7 @@ impl Store {
                     }
                 }
 
-                Some(entry.value.close())
+                Some(entry.value.clone())
             }
             None => None,
         }
